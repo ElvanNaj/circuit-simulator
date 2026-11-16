@@ -9,12 +9,9 @@ out/
 build/
 dist/
 
-# Generated standalone server + assets for the repo-root launcher
-# (copied from source/.next/standalone and source/public by the build)
+# Generated standalone server for the repo-root launcher
+# (copied from source/.next/standalone by the build)
 /server.js
-/public/
-/package.json
-/package-lock.json
 
 # TypeScript incremental build info
 *.tsbuildinfo

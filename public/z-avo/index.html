@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Z-AVO 800 — Virtual Digital AVOmeter (Sanwa CD800a)</title>
+  <link rel="stylesheet" href="z-avo.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23fdb813'/><text x='16' y='22' font-size='14' font-family='monospace' font-weight='bold' text-anchor='middle' fill='%2315171a'>V</text></svg>" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="z-avo.js"></script>
+  <script src="z-avo-ui.js"></script>
+  <script>
+    // Mount the full instrument. window.AVO (the engine API) becomes
+    // available immediately after this line.
+    ZAVO.createAVOUI(document.getElementById('app'));
+  </script>
+</body>
+</html>
