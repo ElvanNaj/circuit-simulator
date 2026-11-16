@@ -1,0 +1,729 @@
+/* ============================================================
+   Z-AVO 800 — Virtual Digital AVOmeter (Multimeter) styling
+   Front-panel modeled 1:1 after the Sanwa CD800a:
+   - Bright yellow Sanwa case
+   - Black inset control panel
+   - Large rotary selector knob with white pointer
+   - LCD with greenish-gray background, large black digits
+   - 4 color-coded input jacks at bottom (COM, V/Ω, mA, +)
+   - Function buttons (POWER, HOLD, RANGE, REL, SELECT/Hz/DUTY)
+   ============================================================ */
+
+html, body { margin: 0; padding: 0; }
+
+.avo-app {
+  width: 100%;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 50% -100px, #2a2f36 0%, #15181c 55%, #0a0c0f 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 22px 10px 60px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.avo-app *, .sim-app * { box-sizing: border-box; }
+
+.avo-scale-wrap { transform-origin: top center; }
+
+/* ------------------------------------------------------------
+   Outer yellow case — Sanwa signature color, "tough body" look
+   ------------------------------------------------------------ */
+.dmm-case {
+  width: 560px;
+  position: relative;
+  padding: 22px 22px 28px;
+  border-radius: 28px;
+  background:
+    radial-gradient(120% 80% at 50% -20%, #ffe071 0%, #fdb813 35%, #d8a100 75%, #b88c00 100%);
+  box-shadow:
+    0 38px 90px rgba(0, 0, 0, 0.7),
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -8px 20px rgba(120, 80, 0, 0.45),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.18);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.dmm-case::before {
+  /* subtle rubber holster grain */
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 22px;
+  background:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.025) 0 2px, transparent 2px 4px);
+  pointer-events: none;
+}
+
+/* corner bumpers */
+.bumper {
+  position: absolute;
+  width: 30px; height: 30px;
+  border-radius: 14px 14px 8px 8px;
+  background: linear-gradient(180deg, #ffd24a, #b88c00);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -3px 5px rgba(80, 50, 0, 0.5);
+}
+.bumper.tl { top: -4px; left: -4px; transform: rotate(-30deg); }
+.bumper.tr { top: -4px; right: -4px; transform: rotate(30deg); }
+.bumper.bl { bottom: -4px; left: -4px; transform: rotate(-150deg); }
+.bumper.br { bottom: -4px; right: -4px; transform: rotate(150deg); }
+
+/* ------------------------------------------------------------
+   Top brand strip
+   ------------------------------------------------------------ */
+.dmm-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 12px;
+  position: relative;
+  z-index: 2;
+}
+.brand-sanwa {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.brand-sanwa .name {
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: #15171a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.brand-sanwa .sub {
+  font-size: 8px;
+  letter-spacing: 2.4px;
+  color: #2a2a2a;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.brand-model {
+  text-align: right;
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.brand-model .model {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: block;
+}
+.brand-model .tag { opacity: 0.7; }
+
+/* ------------------------------------------------------------
+   Inner black control panel
+   ------------------------------------------------------------ */
+.dmm-panel {
+  background:
+    linear-gradient(180deg, #23272c 0%, #1a1d20 30%, #14171a 100%);
+  border-radius: 14px;
+  padding: 16px 18px 18px;
+  position: relative;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.6),
+    0 4px 14px rgba(0, 0, 0, 0.45);
+  border: 1px solid #06080a;
+}
+
+/* ------------------------------------------------------------
+   LCD
+   ------------------------------------------------------------ */
+.lcd {
+  background:
+    radial-gradient(120% 90% at 50% 30%, #a9c4b1 0%, #9bb6a3 60%, #8aa495 100%);
+  border-radius: 8px;
+  padding: 10px 14px 8px;
+  position: relative;
+  border: 2px solid #2a3024;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  font-family: 'DSEG7 Classic', 'Courier New', ui-monospace, monospace;
+  color: #0c1410;
+  min-height: 90px;
+  overflow: hidden;
+}
+.lcd::after {
+  /* glass reflection */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.04) 20%, transparent 38%);
+  border-radius: 8px;
+}
+.lcd-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9.5px;
+  letter-spacing: 1.6px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #1d2a23;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  min-height: 12px;
+}
+.lcd-flags { display: flex; gap: 8px; }
+.lcd-flag {
+  opacity: 0.16;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+.lcd-flag.on { opacity: 1; }
+.lcd-flag.auto { color: #0c1410; }
+.lcd-flag.ac { color: #b32; }
+.lcd-flag.dc { color: #0c1410; }
+.lcd-flag.hz { color: #0c1410; }
+.lcd-flag.beep { color: #0c8a3a; }
+
+.lcd-main {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+.lcd-sign {
+  font-family: 'DSEG7 Classic', 'Courier New', monospace;
+  font-size: 13px;
+  color: #2a3a30;
+  visibility: hidden;
+  width: 12px;
+}
+.lcd-sign.on { visibility: visible; color: #0c1410; }
+.lcd-digits {
+  font-family: 'DSEG7 Classic', 'Courier New', monospace;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+  color: #0c1410;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+  white-space: pre;
+}
+.lcd-unit {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1d2a23;
+  margin-left: 2px;
+  letter-spacing: 0.5px;
+}
+.lcd-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8.5px;
+  letter-spacing: 1.5px;
+  color: #1d2a23;
+  text-transform: uppercase;
+  margin-top: 2px;
+  min-height: 11px;
+}
+.lcd-bar {
+  display: flex;
+  gap: 1px;
+  margin-top: 2px;
+}
+.lcd-bar i {
+  flex: 1;
+  height: 5px;
+  background: rgba(12, 20, 16, 0.16);
+  border-radius: 1px;
+}
+.lcd-bar i.on { background: #0c1410; }
+
+.lcd-standby {
+  position: absolute;
+  inset: 0;
+  background: #1d2418;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2c333c;
+  letter-spacing: 6px;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  border-radius: 6px;
+  z-index: 5;
+}
+
+/* ------------------------------------------------------------
+   Knob area + label ring + buttons
+   ------------------------------------------------------------ */
+.knob-row {
+  display: grid;
+  grid-template-columns: 1fr 168px 1fr;
+  gap: 10px;
+  margin-top: 14px;
+  align-items: center;
+}
+
+/* left & right button columns flanking the knob */
+.btn-col {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: stretch;
+  padding: 4px 2px;
+}
+.btn-col.left  { align-items: flex-end; }
+.btn-col.right { align-items: flex-start; }
+
+/* function push-buttons (POWER / HOLD / RANGE / REL / SELECT) */
+.fn-btn {
+  width: 86px;
+  min-height: 36px;
+  border-radius: 7px;
+  border: 1px solid #06080a;
+  background:
+    linear-gradient(180deg, #4a5058 0%, #2e3237 50%, #23262a 100%);
+  box-shadow:
+    0 3px 4px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  color: #f0f3f7;
+  font-size: 9.5px;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  font-family: inherit;
+  position: relative;
+}
+.fn-btn:active { transform: translateY(1px); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6); }
+.fn-btn:hover { filter: brightness(1.12); }
+.fn-btn .primary { color: #ffd24a; font-weight: 800; }
+.fn-btn .secondary { color: #9fb6cc; font-size: 7.5px; letter-spacing: 1.4px; font-weight: 600; }
+.fn-btn .led {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #0e1013;
+  box-shadow: inset 0 0 2px #000;
+}
+.fn-btn.led-on .led {
+  background: var(--led, #38e05f);
+  box-shadow: 0 0 6px var(--led, #38e05f), 0 0 1px var(--led, #38e05f);
+}
+.fn-btn.power {
+  background: linear-gradient(180deg, #d8321f 0%, #9a2316 50%, #7a1b10 100%);
+  border-color: #4a0d06;
+}
+.fn-btn.power .led { background: #ffd24a; box-shadow: 0 0 6px #ffd24a; }
+.fn-btn.power.off .led { background: #4a0e08; box-shadow: none; }
+
+/* ------------------------------------------------------------
+   Rotary selector knob — Sanwa CD800a style
+   ------------------------------------------------------------ */
+.knob-area {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  margin: 0 auto;
+}
+.knob-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 40%, #2a2e33 0%, #1a1d20 60%, #0e1013 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.05),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.7),
+    0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.knob-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.knob-label {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform-origin: 0 0;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: #f0f3f7;
+  text-transform: uppercase;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+.knob-label .gly {
+  font-family: 'DSEG7 Classic', 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffd24a;
+}
+.knob-label.off { color: #9aa2ac; }
+.knob-label.ohm { color: #c79bff; }
+.knob-label.volt { color: #7ec8ff; }
+.knob-label.amp { color: #48e07a; }
+.knob-label.freq { color: #ff9d45; }
+.knob-label.cap { color: #f0685f; }
+.knob-label.active {
+  color: #ffd24a;
+  text-shadow: 0 0 6px rgba(255, 210, 74, 0.6), 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+.knob-tick {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 2px; height: 6px;
+  margin-left: -1px;
+  background: #7d858f;
+  border-radius: 1px;
+  transform-origin: 50% 78px;
+}
+.knob-tick.major { background: #cfd6de; height: 8px; }
+
+.knob-body {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 116px; height: 116px;
+  margin: -58px 0 0 -58px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, #5a616b 0%, #3a3f46 38%, #26292e 72%, #1d2024 100%);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.7),
+    inset 0 2px 3px rgba(255, 255, 255, 0.18),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.6),
+    0 0 0 1px #15171b;
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+.knob-body:active { cursor: grabbing; }
+.knob-ridges {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.06) 0deg 4deg,
+    rgba(0, 0, 0, 0.18) 4deg 8deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 56%, #000 60%, #000 100%);
+  mask: radial-gradient(circle, transparent 56%, #000 60%, #000 100%);
+  pointer-events: none;
+}
+.knob-cap {
+  position: absolute;
+  inset: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 32%, #4a5058, #2a2d33 75%);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18), 0 1px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  color: #cfd6de;
+  text-shadow: 0 1px 0 #000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.knob-pointer {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 5px;
+  height: 30%;
+  margin-left: -2.5px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #ffffff, #cfd6de 60%, #8f97a1);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  transform-origin: 2.5px 54px;
+}
+
+/* ------------------------------------------------------------
+   Input jacks row
+   ------------------------------------------------------------ */
+.jacks-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: 14px;
+  padding: 10px 4px 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.jack-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.jack {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #4a4f55 0%, #1d2024 50%, #06080a 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.8),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.6);
+  position: relative;
+  border: 2px solid #06080a;
+}
+.jack::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: #06080a;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.06);
+}
+.jack-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 3px solid;
+  pointer-events: none;
+}
+.jack-ring.black  { border-color: #15171a; }
+.jack-ring.red    { border-color: #d8321f; }
+.jack-ring.yellow { border-color: #fdb813; }
+.jack-ring.blue   { border-color: #2d6dd6; }
+
+.jack-label {
+  font-size: 9.5px;
+  letter-spacing: 1.2px;
+  color: #f0f3f7;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.1;
+}
+.jack-label .gly {
+  font-family: 'DSEG7 Classic', monospace;
+  color: #ffd24a;
+  font-size: 11px;
+}
+.jack-label.com  .gly { color: #cfd6de; }
+.jack-label.vohm .gly { color: #d8321f; }
+.jack-label.ma   .gly { color: #fdb813; }
+.jack-label.amp  .gly { color: #2d6dd6; }
+
+/* ------------------------------------------------------------
+   Bottom bezel — model number, category rating
+   ------------------------------------------------------------ */
+.dmm-bezel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 0 6px;
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: #15171a;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.dmm-bezel .cat { font-size: 10px; }
+
+/* ------------------------------------------------------------
+   Status pill (live state)
+   ------------------------------------------------------------ */
+.status-pill {
+  position: absolute;
+  top: 14px;
+  right: 22px;
+  font-size: 9.5px;
+  letter-spacing: 1px;
+  color: #15171a;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.status-pill .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #38e05f;
+  box-shadow: 0 0 5px #38e05f;
+}
+.status-pill.off .dot { background: #6a3030; box-shadow: none; }
+
+/* ------------------------------------------------------------
+   API console
+   ------------------------------------------------------------ */
+.api-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  border-radius: 999px;
+  border: 1px solid #14161a;
+  background: linear-gradient(180deg, #3b4046, #23262a);
+  color: #ffd95e;
+  font-size: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  font-family: ui-monospace, monospace;
+}
+.api-fab:hover { filter: brightness(1.15); }
+
+.api-console {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 70;
+  background: #101317f2;
+  backdrop-filter: blur(6px);
+  border-top: 1px solid #2a2f36;
+  color: #d7dee6;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+}
+.api-console .head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #232830;
+  flex-wrap: wrap;
+}
+.api-console .badge {
+  border: 1px solid #2f353d;
+  color: #45e873;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+}
+.api-console .badge.off { color: #f0685f; }
+.api-console .title {
+  font-weight: 700;
+  color: #ffd24a;
+  letter-spacing: 1px;
+}
+.api-console .close {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #2f353d;
+  color: #aab2bc;
+  border-radius: 4px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.api-console .body {
+  display: flex; gap: 0;
+  height: 240px;
+}
+.api-console .left {
+  flex: 1;
+  display: flex; flex-direction: column;
+  padding: 10px 14px;
+  gap: 8px;
+  border-right: 1px solid #232830;
+  min-width: 0;
+}
+.api-console .cmdrow { display: flex; gap: 8px; }
+.api-console input[type='text'] {
+  flex: 1;
+  background: #0a0d11;
+  border: 1px solid #2b323b;
+  border-radius: 5px;
+  color: #e8eef5;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+.api-console input[type='text']:focus { border-color: #ffd24a55; }
+.api-console .send {
+  background: linear-gradient(180deg, #58e878, #23b84a);
+  color: #052d12;
+  border: none;
+  border-radius: 5px;
+  font-weight: 700;
+  padding: 0 16px;
+  cursor: pointer;
+}
+.api-console .examples {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  overflow-y: auto;
+  max-height: 92px;
+}
+.api-console .ex {
+  background: #1a2027;
+  border: 1px solid #2b323b;
+  color: #9fb6cc;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.api-console .ex:hover { border-color: #ffd24a55; color: #d7e2ee; }
+.api-console .log {
+  flex: 1.2;
+  overflow-y: auto;
+  padding: 10px 14px;
+  background: #0a0d11;
+  line-height: 1.55;
+  min-width: 0;
+}
+.api-console .log .cmd { color: #7ec8ff; }
+.api-console .log .ok { color: #58e878; }
+.api-console .log .err { color: #f0685f; }
+.api-console .log .ev { color: #c79bff; }
+.api-console .log .dim { color: #5c6570; }
+.api-console ::-webkit-scrollbar { width: 8px; height: 8px; }
+.api-console ::-webkit-scrollbar-thumb { background: #2c333c; border-radius: 4px; }
+.api-console ::-webkit-scrollbar-track { background: transparent; }
+
+/* ------------------------------------------------------------
+   Sim demo page
+   ------------------------------------------------------------ */
+.sim-app {
+  min-height: 100vh;
+  background: radial-gradient(1000px 500px at 50% -80px, #1d232b 0%, #101418 55%, #0a0d10 100%);
+  color: #d7dee6;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 28px 18px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+.sim-btn {
+  padding: 7px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  border: 1px solid #2b323b;
+  background: #1a2027;
+  color: #9fb6cc;
+  font-family: inherit;
+}
+.sim-primary {
+  padding: 9px 18px;
+  font-weight: 700;
+  border: 1px solid #0f5a26;
+}
+.sim-btn:hover { filter: brightness(1.12); }
+
+@media (max-width: 620px) {
+  .dmm-case { width: 96vw; }
+  .lcd-digits { font-size: 32px; }
+}

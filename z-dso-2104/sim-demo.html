@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Sirkuit Demo — Z-DSO 2104</title>
+  <link rel="stylesheet" href="z-dso.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2323262b'/><path d='M4 16 h5 l2 -7 4 14 3 -11 2 4 h8' stroke='%2345e873' stroke-width='2' fill='none'/></svg>" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="z-dso.js"></script>
+  <script src="z-dso-ui.js"></script>
+  <script>
+    // Reference integration: RC low-pass simulator streaming Vin/Vout
+    // into the Z-DSO 2104 oscilloscope (index.html) — BroadcastChannel
+    // on http(s), window.postMessage fallback on file://.
+    ZDSO.createSimDemoUI(document.getElementById('app'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Generated standalone server + assets for the repo-root launcher
+# (copied from source/.next/standalone and source/public by the build)
+/server.js
+/public/
+/package.json
+/package-lock.json
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Rust build artifacts
+target/
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local database files
+db/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/

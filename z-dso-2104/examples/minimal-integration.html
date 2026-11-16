@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minimal Integration — Z-DSO 2104</title>
+  <style>
+    body { background: #101418; color: #d7dee6; font-family: Arial, sans-serif; max-width: 860px; margin: 30px auto; padding: 0 18px; }
+    h1 { font-size: 20px; } code, pre { font-family: ui-monospace, monospace; }
+    pre { background: #0d1014; border: 1px solid #262c34; border-radius: 10px; padding: 14px; font-size: 12px; line-height: 1.6; overflow-x: auto; color: #9fb6cc; }
+    button { padding: 9px 16px; border-radius: 8px; border: 1px solid #0f5a26; background: linear-gradient(180deg,#58e878,#23b84a); color: #052d12; font-weight: 700; cursor: pointer; margin-right: 10px; }
+    button.ghost { background: #1a2027; color: #ffe17a; border: 1px solid #2b323b; font-weight: 400; }
+    #status { margin-left: 8px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Contoh integrasi minimal — kirim sine 1 kHz 2 Vpp ke CH1</h1>
+  <p>Halaman ini adalah contoh kode paling kecil untuk mengendalikan osiloskop
+     (buka <code>../index.html</code>). Bekerja via <code>BroadcastChannel</code> (http://localhost)
+     atau <code>window.postMessage</code> (fallback bila dibuka via file://).</p>
+
+  <p>
+    <button id="open">Buka Osiloskop ↗</button>
+    <button id="send" class="ghost">Kirim sine 1 kHz ke CH1</button>
+    <span id="status">status: -</span>
+  </p>
+
+  <pre id="code"></pre>
+
+  <script>
+    /* ---------- 1) pilih transport ---------- */
+    var bc = null, scopeWin = null;
+    if (location.protocol !== 'file:') {
+      bc = new BroadcastChannel('osc-bridge');        // dua window terpisah (http)
+    }
+    function send(cmd, args) {
+      var msg = { __osc: true, cmd: cmd, args: args };
+      if (bc) bc.postMessage(msg);
+      else if (scopeWin && !scopeWin.closed) scopeWin.postMessage(msg, '*');
+    }
+
+    /* ---------- 2) deteksi scope lewat event heartbeat ---------- */
+    function listen(cb) {
+      if (bc) bc.onmessage = function (ev) { cb(ev.data); };
+      else window.addEventListener('message', function (ev) { cb(ev.data); });
+    }
+    listen(function (d) {
+      if (d && d.__osc && d.__oscEvent && d.event === 'heartbeat') {
+        document.getElementById('status').textContent = 'status: terhubung ✓';
+        document.getElementById('status').style.color = '#45e873';
+      }
+    });
+
+    /* ---------- 3) buka window scope ---------- */
+    document.getElementById('open').onclick = function () {
+      scopeWin = window.open('../index.html', 'z-dso', 'width=1290,height=1000');
+    };
+
+    /* ---------- 4) kirim sinyal uji + konfigurasi ---------- */
+    document.getElementById('send').onclick = function () {
+      var N = 1200, timeDiv = 0.0002, win = timeDiv * 10;
+      send('setHorizontal', [{ timeDiv: timeDiv }]);
+      send('setChannel', [0, { enabled: true, voltsDiv: 0.5 }]);
+      send('setTrigger', [{ source: 0, level: 0, edge: 'rising', sweep: 'auto' }]);
+      var t0 = performance.now() / 1000;
+      setInterval(function () {
+        var now = performance.now() / 1000;
+        var buf = new Float32Array(N);              // selalu Float32Array
+        for (var i = 0; i < N; i++) {
+          var t = now - win + (i / (N - 1)) * win;
+          buf[i] = Math.sin(2 * Math.PI * 1000 * t); // sine 1 kHz, 1 Vpk
+        }
+        send('setChannelData', [0, buf, { sampleRate: (N - 1) / win, tStart: now - win, align: 'none' }]);
+      }, 33); // ±30 fps
+    };
+
+    document.getElementById('code').textContent = document.querySelector('script').textContent.trim();
+  </script>
+</body>
+</html>
