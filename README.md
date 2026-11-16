@@ -1,41 +1,41 @@
 # CircuitSim
 
-Simulator rangkaian elektronik interaktif di browser — gaya [Falstad Circuit Simulator](https://github.com/pfalstad/circuitjs1),
-dengan **engine Rust → WebAssembly** dan **frontend Next.js + React**.
+An interactive, browser-based circuit simulator in the style of [Falstad Circuit Simulator](https://github.com/pfalstad/circuitjs1),
+built with a **Rust → WebAssembly engine** and a **Next.js + React** frontend.
 
 ![engine](https://img.shields.io/badge/engine-Rust%20%E2%86%92%20WASM-dea584)
 ![frontend](https://img.shields.io/badge/frontend-Next.js%2016%20%2B%20React%2019-151513)
 
 ![CircuitSim](source/public/icon.svg)
 
-## Fitur
+## Features
 
-- **37 tipe komponen** (41 entri palette): pasif, sumber, probe, aktif, gerbang logika, ADC/DAC, transformator, spark gap.
-- **Engine MNA** — LU factorization (Crout + partial pivoting), Newton–Raphson dengan voltage limiting, companion model trapezoidal untuk C/L.
-- **Tema UI** — dark (default), light, dan pink, termasuk warna kanvas.
-- **Osiloskop** internal 4 channel + integrasi instrumen eksternal:
-  - **Z-DSO 2104** — osiloskop 4 channel di jendela terpisah (`BroadcastChannel`).
-  - **Z-AVO 800** — multimeter gaya Sanwa CD800a, probe merah/hitam sebagai komponen (11 mode).
-- **Interaksi**: select, rubber-band, drag, pan, zoom, edit nilai, undo/redo, rotate, duplicate.
-- **Quick add (P)**, cheat-sheet (**?**), collapse sidebar (**[**), 9 preset rangkaian.
-- **Penyimpanan**: autosave `localStorage` + export/import `.circuit.json` (Ctrl+S / Ctrl+O, drag-and-drop).
+- **37 component types** (41 palette entries): passives, sources, probes, active devices, logic gates, ADC/DAC, transformers, spark gaps.
+- **MNA engine** — LU factorization (Crout with partial pivoting), Newton–Raphson with voltage limiting, trapezoidal companion models for C and L.
+- **UI themes** — dark (default), light, and pink, including canvas colours.
+- **Built-in 4-channel oscilloscope** plus external instrument integration:
+  - **Z-DSO 2104** — 4-channel oscilloscope in a dedicated window (`BroadcastChannel`).
+  - **Z-AVO 800** — Sanwa CD800a-style multimeter, with red/black probes as regular circuit components (11 modes).
+- **Interaction**: select, rubber-band selection, drag, pan, zoom, inline value editing, undo/redo, rotate, duplicate.
+- **Quick add (P)**, shortcut cheat-sheet (**?**), collapsible sidebar (**[**), 9 circuit presets.
+- **Persistence**: `localStorage` autosave + `.circuit.json` export/import (Ctrl+S / Ctrl+O, drag-and-drop).
 
-## Menjalankan
+## Running
 
-Butuh **Node.js 20 LTS** atau lebih baru.
+Requires **Node.js 20 LTS** or newer.
 
-### Cara cepat (launcher)
+### Quick start (launcher)
 
-| Sistem | Perintah |
+| Platform | Command |
 |---|---|
 | Linux / macOS | `./start.sh` |
-| macOS | dobel-klik `Start Circuit Simulator.command` |
-| Windows | dobel-klik `Start Circuit Simulator.bat` |
+| macOS | double-click `Start Circuit Simulator.command` |
+| Windows | double-click `Start Circuit Simulator.bat` |
 
-Launcher akan memakai build yang ada; jika belum ada, ia menjalankan `npm install` + `npm run build`
-di `source/` sekali, lalu membuka `http://localhost:3000`.
+The launcher uses an existing build. If none is found, it runs `npm install` + `npm run build`
+inside `source/` once, then opens `http://localhost:3000`.
 
-### Mode pengembangan
+### Development mode
 
 ```bash
 cd source
@@ -43,39 +43,39 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-### Build mandiri
+### Standalone build
 
 ```bash
 cd source
-npm run build        # menghasilkan .next/standalone/
+npm run build        # produces .next/standalone/
 node .next/standalone/server.js
 ```
 
-## Struktur Repo
+## Repository Layout
 
 ```
-start.sh, *.bat, *.command   # launcher lokal
-source/                      # aplikasi Next.js + engine Rust
-  engine/                    # crate Rust (MNA solver)
-  public/wasm/               # circuit_engine.wasm (binary hasil build)
-  src/lib/circuit/           # engine wrapper, renderer, preset, file format
-  src/components/sim/        # UI simulator
-  docs/                      # dokumentasi teknis
-  scripts/                   # test headless engine & probe
-z-avo-800/                   # paket instrumen Z-AVO 800 (standalone, black box)
-z-dso-2104/                  # paket instrumen Z-DSO 2104 (standalone, black box)
+start.sh, *.bat, *.command   # local launchers
+source/                      # Next.js app + Rust engine
+  engine/                    # Rust crate (MNA solver)
+  public/wasm/               # circuit_engine.wasm (prebuilt binary)
+  src/lib/circuit/           # engine wrapper, renderer, presets, file format
+  src/components/sim/        # simulator UI
+  docs/                      # technical documentation
+  scripts/                   # headless engine and probe tests
+z-avo-800/                   # Z-AVO 800 instrument package (standalone, black box)
+z-dso-2104/                  # Z-DSO 2104 instrument package (standalone, black box)
 ```
 
-Dokumentasi lengkap: [`source/README.md`](source/README.md) dan [`source/docs/`](source/docs).
+Full documentation: [`source/README.md`](source/README.md) and [`source/docs/`](source/docs).
 
-## Catatan Build
+## Build Notes
 
-Repo ini **tidak** menyertakan artefak build. Folder `node_modules/`, `.next/`, `target/`,
-`server.js`, dan file `.env` di-ignore (lihat [`.gitignore`](.gitignore)) dan dibuat ulang
-oleh perintah di atas. Binary engine `source/public/wasm/circuit_engine.wasm` sudah disertakan
-sehingga aplikasi bisa langsung jalan tanpa toolchain Rust.
+This repository does **not** ship build artifacts. `node_modules/`, `.next/`, `target/`,
+`server.js`, and `.env` are ignored (see [`.gitignore`](.gitignore)) and are recreated by the
+commands above. The engine binary `source/public/wasm/circuit_engine.wasm` is included, so the
+app runs without a Rust toolchain.
 
-## Kredit
+## Credits
 
-Di-reverse engineer dari [circuitjs1](https://github.com/pfalstad/circuitjs1) karya Paul Falstad —
-ditulis ulang dari nol di Rust, bukan fork kode.
+Reverse-engineered from [circuitjs1](https://github.com/pfalstad/circuitjs1) by Paul Falstad —
+rewritten from scratch in Rust, not a code fork.
