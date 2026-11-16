@@ -33,7 +33,7 @@ Requires **Node.js 20 LTS** or newer.
 | Windows | double-click `Start Circuit Simulator.bat` |
 
 The launcher uses an existing build. If none is found, it runs `npm install` + `npm run build`
-inside `source/` once, then opens `http://localhost:3000`.
+inside `source/` once, then opens `http://localhost:3000`. The first run can take a few minutes.
 
 ### Development mode
 
@@ -74,6 +74,41 @@ This repository does **not** ship build artifacts. `node_modules/`, `.next/`, `t
 `server.js`, and `.env` are ignored (see [`.gitignore`](.gitignore)) and are recreated by the
 commands above. The engine binary `source/public/wasm/circuit_engine.wasm` is included, so the
 app runs without a Rust toolchain.
+
+## Troubleshooting
+
+**Windows: the window closes immediately, or setup fails**
+
+1. Check the Node.js version. Next.js 16 needs **Node.js 20.9 or newer**:
+   ```bat
+   node -v
+   ```
+   If the command is not found or the version is 18 or older, install the LTS build from
+   https://nodejs.org and open a **new** Command Prompt (the PATH is only refreshed for new windows).
+2. The first run has to install dependencies and compile the app. Expect several minutes and
+   keep the window open — closing it aborts the build.
+3. Windows SmartScreen may block the `.bat` the first time. Choose **More info → Run anyway**.
+4. If setup still fails, run the steps manually to see the full error:
+   ```bat
+   cd source
+   npm install
+   npm run build
+   npm start
+   ```
+5. Port 3000 already in use? Start it on another port:
+   ```bat
+   set PORT=3001
+   node source\.next\standalone\server.js
+   ```
+
+**Linux / macOS**
+
+```bash
+cd source && npm install && npm run build && npm start
+```
+
+The browser console (`F12`) shows client-side errors. Saving and loading circuits happens in
+`localStorage` and through `.circuit.json` files, so no database is required.
 
 ## Credits
 
