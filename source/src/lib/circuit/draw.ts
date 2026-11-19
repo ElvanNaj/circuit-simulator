@@ -56,6 +56,25 @@ function line(ctx: CanvasRenderingContext2D, a: [number, number], b: [number, nu
   ctx.stroke();
 }
 
+/** Point where the segment a→b leaves a circle (used to place BJT arrows outside the body). */
+function circleExit(
+  a: [number, number],
+  b: [number, number],
+  center: [number, number],
+  r: number
+): [number, number] {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const aa = dx * dx + dy * dy;
+  if (aa < 1e-9) return a;
+  const fx = a[0] - center[0], fy = a[1] - center[1];
+  const bb = 2 * (fx * dx + fy * dy);
+  const cc = fx * fx + fy * fy - r * r;
+  const disc = bb * bb - 4 * aa * cc;
+  if (disc < 0) return a;
+  const t = (-bb + Math.sqrt(disc)) / (2 * aa);
+  return t >= 0 && t <= 1 ? [a[0] + dx * t, a[1] + dy * t] : a;
+}
+
 /**
  * Falstad-style element geometry (`CircuitElm.calcLeads`): the symbol body
  * keeps a FIXED size while the leads stretch. Returns the two points between
@@ -340,43 +359,68 @@ function drawDiode(ctx: CanvasRenderingContext2D, a: [number, number], b: [numbe
 function drawBjt(ctx: CanvasRenderingContext2D, posts: [number, number][], flags: number, opt: DrawOpt) {
   const b = posts[0], c = posts[1], e = posts[2];
   const ce = mid(c, e);
-  const [ux, uy] = norm(b, ce);
-  const px = -uy, py = ux;
-  const dTotal = dist(b, ce);
-  // fixed-size symbol: circle radius clamped, bar tangent to the circle's left
-  // edge, so stretching the posts only stretches the leads (Falstad-style)
+  let [ux, uy] = norm(b, ce);
+  let px = -uy, py = ux;
+  let dTotal = dist(b, ce);
+
+  // A click with no drag can put the base exactly at the C/E midpoint. In that
+  // case the C/E spread is perpendicular to the body axis — use it to recover
+  // the orientation instead of collapsing every point onto the base.
+  if (dTotal < 1e-6) {
+    const spread = norm(ce, c);
+    px = spread[0]; py = spread[1];
+    ux = py; uy = -px;
+    dTotal = dist(b, c);
+  }
+
+  // Fixed-size body: the bar is tangent to the circle, so stretching the posts
+  // only stretches the leads (Falstad-style).
   const r = Math.max(7, Math.min(12, dTotal * 0.42));
-  const circDist = Math.min(dTotal - r - 2, Math.max(r + 10, dTotal * 0.72));
+  const circDist = Math.max(r + 6, Math.min(dTotal - r - 2, Math.max(r + 10, dTotal * 0.72)));
   const barDist = Math.max(circDist - r, 2);
   const barC: [number, number] = [b[0] + ux * barDist, b[1] + uy * barDist];
-  const barHalf = 11;
-  const barTop: [number, number] = [barC[0] + px * barHalf, barC[1] + py * barHalf];
-  const barBot: [number, number] = [barC[0] - px * barHalf, barC[1] - py * barHalf];
   const circleC: [number, number] = [b[0] + ux * circDist, b[1] + uy * circDist];
-  // leads
+  const barHalf = 10;
+
+  // Assign bar ends by perpendicular projection: the collector end is always
+  // on the collector's side of the axis, so the C/E leads never cross.
+  const sc = (c[0] - barC[0]) * px + (c[1] - barC[1]) * py;
+  const se = (e[0] - barC[0]) * px + (e[1] - barC[1]) * py;
+  const side = sc >= se ? 1 : -1;
+  const cEnd: [number, number] = [barC[0] + px * barHalf * side, barC[1] + py * barHalf * side];
+  const eEnd: [number, number] = [barC[0] - px * barHalf * side, barC[1] - py * barHalf * side];
+
+  // Leads.
   line(ctx, b, barC);
-  line(ctx, barC, barTop); line(ctx, barC, barBot);
-  // collector / emitter stubs toward posts
-  const cDir = norm(barTop, c);
-  line(ctx, barTop, [c[0] - cDir[0] * 2, c[1] - cDir[1] * 2]);
-  const eDir = norm(barBot, e);
-  line(ctx, barBot, [e[0] - eDir[0] * 2, e[1] - eDir[1] * 2]);
-  // arrow on emitter: NPN outward (toward e), PNP inward (toward bar)
-  const pnp = (flags & F_PNP) !== 0;
-  const arrowAt = pnp ? [barBot[0] + eDir[0] * 8, barBot[1] + eDir[1] * 8] : [e[0] - eDir[0] * 8, e[1] - eDir[1] * 8];
-  const arrowDir = pnp ? [-eDir[0], -eDir[1]] : [eDir[0], eDir[1]];
-  ctx.beginPath();
-  ctx.moveTo(arrowAt[0] + arrowDir[0] * 5 - eDir[0] * 0 + px * 4, arrowAt[1] + arrowDir[1] * 5 + py * 4);
-  ctx.lineTo(arrowAt[0], arrowAt[1]);
-  ctx.lineTo(arrowAt[0] + arrowDir[0] * 5 - px * 4, arrowAt[1] + arrowDir[1] * 5 - py * 4);
-  ctx.closePath();
-  ctx.fill();
-  // circle (paint bg fill first so leads appear clipped)
+  line(ctx, cEnd, eEnd);
+  const cDir = norm(cEnd, c);
+  line(ctx, cEnd, [c[0] - cDir[0] * 2, c[1] - cDir[1] * 2]);
+  const eDir = norm(eEnd, e);
+  line(ctx, eEnd, [e[0] - eDir[0] * 2, e[1] - eDir[1] * 2]);
+
+  // Circle fill hides the inner part of the leads, like circuitjs1.
   ctx.save();
   ctx.fillStyle = palette.body;
   ctx.beginPath(); ctx.arc(circleC[0], circleC[1], r, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
   ctx.beginPath(); ctx.arc(circleC[0], circleC[1], r, 0, Math.PI * 2); ctx.stroke();
+
+  // Emitter arrow, drawn last so it is never covered by the body fill:
+  // NPN points away from the bar (outward), PNP points toward it (inward).
+  const exit = circleExit(eEnd, e, circleC, r);
+  const gap = dist(exit, e);
+  const offset = Math.min(gap * 0.55, 9);
+  const ax0: [number, number] = [exit[0] + eDir[0] * offset, exit[1] + eDir[1] * offset];
+  const sign = (flags & F_PNP) !== 0 ? -1 : 1;
+  const ax = eDir[0] * sign, ay = eDir[1] * sign;
+  const nx = -ay, ny = ax;
+  const h = 4.5;
+  ctx.beginPath();
+  ctx.moveTo(ax0[0] + ax * h, ax0[1] + ay * h);
+  ctx.lineTo(ax0[0] - ax * h + nx * h, ax0[1] - ay * h + ny * h);
+  ctx.lineTo(ax0[0] - ax * h - nx * h, ax0[1] - ay * h - ny * h);
+  ctx.closePath();
+  ctx.fill();
   void opt;
 }
 

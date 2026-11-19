@@ -154,7 +154,11 @@ function layoutPosts(meta: ElemMeta, s: [number, number], e: [number, number]): 
   // orientation and lead length, exactly like Falstad's ChipElm
   const dragLen = Math.hypot(dx, dy);
   const chipLen = Math.min(Math.max(dragLen, 40), 60);
-  const E: [number, number] = type === T.DFF || type === T.ADC || type === T.DAC
+  // A click with no drag still needs a usable body: give multi-post elements a
+  // default length instead of stacking every post on the same point (which
+  // collapsed the NPN/PNP symbol to a dot).
+  const needDefaultEnd = dragLen < 1;
+  const E: [number, number] = (type === T.DFF || type === T.ADC || type === T.DAC || needDefaultEnd)
     ? [
         snap(s[0] + (dragLen < 1e-6 ? chipLen : (dx / dragLen) * chipLen)),
         snap(s[1] + (dragLen < 1e-6 ? 0 : (dy / dragLen) * chipLen)),
@@ -185,15 +189,15 @@ function layoutPosts(meta: ElemMeta, s: [number, number], e: [number, number]): 
     return [
       [snap(s[0] - px * 20), snap(s[1] - py * 20)],
       [snap(s[0] + px * 20), snap(s[1] + py * 20)],
-      [snap(e[0]), snap(e[1])],
+      [E[0], E[1]],
     ];
   }
   if (type === T.TRANSISTOR || type === T.MOSFET) {
     // base/gate at start, collector/drain and emitter/source straddling end
     return [
       [s[0], s[1]],
-      [e[0] + px * 20, e[1] + py * 20],
-      [e[0] - px * 20, e[1] - py * 20],
+      [E[0] + px * 20, E[1] + py * 20],
+      [E[0] - px * 20, E[1] - py * 20],
     ];
   }
   if (type === T.DFF) {
@@ -217,9 +221,9 @@ function layoutPosts(meta: ElemMeta, s: [number, number], e: [number, number]): 
   if (type === T.TRANSFORMER) {
     return [
       [s[0], s[1]],
-      [e[0], e[1]],
+      [E[0], E[1]],
       [s[0] + px * 80 + ux * 0, s[1] + py * 80 + uy * 0],
-      [e[0] + px * 80 + ux * 0, e[1] + py * 80 + uy * 0],
+      [E[0] + px * 80 + ux * 0, E[1] + py * 80 + uy * 0],
     ];
   }
   if (type === T.AND || type === T.OR || type === T.NAND || type === T.NOR || type === T.XOR || type === T.XNOR) {
@@ -228,13 +232,14 @@ function layoutPosts(meta: ElemMeta, s: [number, number], e: [number, number]): 
     for (let i = 0; i < nIn; i++) {
       posts.push([s[0] + px * (i - m) * 40, s[1] + py * (i - m) * 40]);
     }
-    posts.push([e[0], e[1]]);
+    posts.push([E[0], E[1]]);
     return posts;
   }
-  // generic: spread along drag
+  // generic: spread along drag (or the default length when clicked)
+  const ex = E[0] - s[0], ey = E[1] - s[1];
   for (let i = 0; i < n; i++) {
     const t = n === 1 ? 0 : i / (n - 1);
-    posts.push([s[0] + dx * t, s[1] + dy * t]);
+    posts.push([s[0] + ex * t, s[1] + ey * t]);
   }
   return posts.map((p) => [snap(p[0]), snap(p[1])]) as [number, number][];
 }
