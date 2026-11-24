@@ -1,10 +1,11 @@
 # Referensi Komponen
 
-Total **37 tipe engine** (`T.*` 1–37, mirror `engine/src/elements.rs`). `ELEMENT_META` punya
-**41 entri palette** karena NPN/PNP dan N/P-MOSFET berbagi tipe engine (15/16) dengan flag
-`F_PNP = 0x100`, plus dua probe **JS-only** untuk multimeter Z-AVO (`PROBE_RED = 101`,
-`PROBE_BLACK = 102`) yang dipetakan ke elemen voltmeter saat dikirim ke engine. Kategori
-sidebar: `Passive, Sources, Probes, Active, Logic, Other`.
+Total **38 tipe engine** (`T.*` 1–37 plus `IC_DUMMY = 103`, mirror `engine/src/elements.rs`).
+`ELEMENT_META` punya **43 entri palette** karena NPN/PNP dan N/P-MOSFET berbagi tipe engine
+(15/16) dengan flag `F_PNP = 0x100`, plus probe **JS-only** untuk multimeter Z-AVO
+(`PROBE_RED = 101`, `PROBE_BLACK = 102`) dan `BATTERY_DC = 104` yang dipetakan ke elemen
+voltmeter/sumber tegangan saat dikirim ke engine. Kategori sidebar:
+`Passive, Sources, Probes, Active, Logic, Other`.
 
 ## Flag & Waveform
 
@@ -29,11 +30,12 @@ sidebar: `Passive, Sources, Probes, Active, Logic, Other`.
 | Switch | 9 | `[0]` | On Resistance (Ω); klik = toggle |
 | Lamp | 11 | `[100]` | Resistance (Ω) |
 
-### Sources (4)
+### Sources (5)
 | Komponen | Tipe | Parameter (default) | Field edit |
 |---|---|---|---|
 | Ground | 2 | — | — |
 | Voltage Source | 6 | `[40, 5, 0, 0, 0.5]` | Waveform (DC/AC/Square/Triangle/Saw/Pulse), Frequency (Hz), Peak Voltage (V), DC Offset (V), Duty Cycle |
+| DC Battery | 104 → 6 | `[0, 5, 0, 0, 0.5]`, `WF_DC` | Voltage (V); simbol sel baterai, dipetakan ke sumber tegangan DC |
 | Current Source | 7 | `[0.01]` | Current (A) |
 | Voltage Rail | 8 | `[5]` | Voltage (V) |
 
@@ -44,7 +46,7 @@ sidebar: `Passive, Sources, Probes, Active, Logic, Other`.
 | Voltmeter | 36 | Shunt 1 GΩ; menampilkan tegangan antar-kaki | — |
 | Ohmmeter | 37 | Sumber arus uji 10 mA + shunt 1 GΩ; `R = V/I` | — |
 
-### Active (10)
+### Active (11)
 | Komponen | Tipe | Parameter (default) | Field edit |
 |---|---|---|---|
 | Diode | 12 | `[Is=1.714e-7, 0, 0, N=2]` | Saturation Current (A), Breakdown (V), Emission Coeff N |
@@ -55,6 +57,7 @@ sidebar: `Passive, Sources, Probes, Active, Logic, Other`.
 | Op-Amp | 17 | `[15, -15, 1e5]` | Max Output (V), Min Output (V), Gain |
 | Comparator | 18 | `[15, -15]` | High Output (V), Low Output (V) |
 | Transformer | 33 | `[0.004, 1, 0.999]` | Primary Inductance (H), Turns Ratio, Coupling |
+| Generic IC | 103 | — | —; 4 pin dummy di sisi kiri, tidak melakukan stamping |
 
 ### Logic (14)
 | Komponen | Tipe | Parameter (default) | Field edit |

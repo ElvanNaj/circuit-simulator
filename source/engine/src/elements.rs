@@ -43,6 +43,7 @@ pub const T_SPARK_GAP: u32 = 34;
 pub const T_AMMETER: u32 = 35;
 pub const T_VOLTMETER: u32 = 36; // 1G-ohm shunt; shows voltage across it
 pub const T_OHMMETER: u32 = 37;  // 1A current source (+1G shunt); R = V/I
+pub const T_IC_DUMMY: u32 = 103; // editor-only 4-pin placeholder; no stamping
 
 // ---- flag bits ----
 pub const F_CLOSED: u32 = 1; // switch closed / logic input high / spark gap conducting
@@ -110,7 +111,7 @@ pub fn post_count(etype: u32, flags: u32) -> usize {
             n_in + 1 // inputs + output
         }
         T_INVERTER | T_BUFFER => 2,
-        T_DFF => 4,  // clk, d, q, qbar
+        T_DFF | T_IC_DUMMY => 4,  // clk, d, q, qbar / four placeholder pins
         T_ADC => 5,  // in, b0..b3
         T_DAC => 5,  // b0..b3, out
         _ => 2,

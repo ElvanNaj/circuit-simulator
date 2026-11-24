@@ -218,6 +218,15 @@ function layoutPosts(meta: ElemMeta, s: [number, number], e: [number, number]): 
     posts[n - 1] = [E[0], E[1]];
     return posts;
   }
+  if (type === T.IC_DUMMY) {
+    // Four pins stacked along the drag's perpendicular (pin 1 → pin 4). The
+    // symbol derives the body direction from that order, so the box always
+    // extends to the right of the pins, including after a click with no drag.
+    for (let i = 0; i < 4; i++) {
+      posts.push([snap(s[0] + px * (i - 1.5) * 20), snap(s[1] + py * (i - 1.5) * 20)]);
+    }
+    return posts;
+  }
   if (type === T.TRANSFORMER) {
     return [
       [s[0], s[1]],
@@ -922,6 +931,11 @@ export function CircuitSimulator() {
       if (e.type === T.PROBE_BLACK) {
         const tip = e.posts[0];
         return { etype: T.VOLTMETER, flags: 0, posts: [tip, tip], params: [] };
+      }
+      if (e.type === T.BATTERY_DC) {
+        // Params already use the VOLTAGE source layout [freq, peak, ...], so
+        // this is a direct mapping and stays correct after in-place edits.
+        return { etype: T.VOLTAGE, flags: e.flags, posts: e.posts, params: e.params };
       }
       return { etype: e.type, flags: e.flags, posts: e.posts, params: e.params };
     });
@@ -1739,6 +1753,18 @@ export function CircuitSimulator() {
           for (const p of e.posts) {
             x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]);
             y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]);
+          }
+          if (e.type === T.IC_DUMMY && e.posts.length >= 4) {
+            // The IC body extends past the pin line; include it so the box is
+            // grabbable, not only the four pins.
+            const p0 = e.posts[0], p3 = e.posts[3];
+            const vx = p3[0] - p0[0], vy = p3[1] - p0[1];
+            const len = Math.hypot(vx, vy);
+            if (len > 0) {
+              const far = [p0[0] + (vy / len) * 64, p0[1] + (-vx / len) * 64];
+              x0 = Math.min(x0, far[0]); x1 = Math.max(x1, far[0]);
+              y0 = Math.min(y0, far[1]); y1 = Math.max(y1, far[1]);
+            }
           }
           if (wx >= x0 - 6 && wx <= x1 + 6 && wy >= y0 - 6 && wy <= y1 + 6 && bestD > 6 / viewRef.current.zoom) {
             bestD = 0;

@@ -39,11 +39,17 @@ export const T = {
   AMMETER: 35,
   VOLTMETER: 36,
   OHMMETER: 37,
+  // 4-pin visual placeholder. The engine reserves this type as a no-op with
+  // four independent nodes, so wires on all four pins stay aligned with JS.
+  IC_DUMMY: 103,
   // JS-only "instrument" elements: they are never sent to the engine as-is.
   // The simulator maps them to no-op / voltmeter elements when building the
   // WASM element list, so they can mark a node without disturbing the circuit.
   PROBE_RED: 101,
   PROBE_BLACK: 102,
+  // Drawn as a DC battery; sent to the engine as T.VOLTAGE with identical
+  // params, so in-place value edits and scope channels keep working.
+  BATTERY_DC: 104,
 } as const;
 
 /** True for elements that exist only in the editor (Z-AVO probes). */
@@ -193,6 +199,17 @@ export const ELEMENT_META: ElemMeta[] = [
     scopeable: true,
   },
   {
+    type: T.BATTERY_DC,
+    name: 'DC Battery',
+    category: 'Sources',
+    posts: 2,
+    // Same layout as T.VOLTAGE: [freq, peak, offset, phase, duty]. Only the
+    // peak voltage is editable and flags stay WF_DC.
+    defaults: { params: [0, 5, 0, 0, 0.5], flags: WF_DC },
+    edits: [{ label: 'Voltage', param: 1, unit: 'V' }],
+    scopeable: true,
+  },
+  {
     type: T.CURRENT,
     name: 'Current Source',
     category: 'Sources',
@@ -305,6 +322,14 @@ export const ELEMENT_META: ElemMeta[] = [
       { label: 'Coupling Coefficient', param: 2, unit: '' },
     ],
     scopeable: true,
+  },
+  {
+    type: T.IC_DUMMY,
+    name: 'Generic IC',
+    category: 'Active',
+    posts: 4,
+    // Dummy footprint: four pins on the left edge, no parameters, no scope.
+    defaults: { params: [] },
   },
   {
     type: T.SPARK_GAP,

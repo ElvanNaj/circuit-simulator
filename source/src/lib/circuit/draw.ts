@@ -142,7 +142,9 @@ export function drawElement(
     case T.ADC: drawChipBox(ctx, posts, 'ADC', ['IN', '0', '1', '2', '3'], [0], [1, 2, 3, 4], opt); break;
     case T.DAC: drawChipBox(ctx, posts, 'DAC', ['0', '1', '2', '3', 'OUT'], [0, 1, 2, 3], [4], opt); break;
     case T.TRANSFORMER: drawTransformer(ctx, posts); break;
+    case T.IC_DUMMY: drawGenericIc(ctx, posts); break;
     case T.VOLTAGE: drawVoltageSource(ctx, posts[0], posts[1], flags, params, opt); break;
+    case T.BATTERY_DC: drawBattery(ctx, posts[0], posts[1]); break;
     case T.CURRENT: drawCurrentSource(ctx, posts[0], posts[1]); break;
     case T.RAIL: drawRail(ctx, posts[0], params, opt); break;
     case T.GROUND: drawGround(ctx, posts[0]); break;
@@ -355,6 +357,76 @@ function drawDiode(ctx: CanvasRenderingContext2D, a: [number, number], b: [numbe
 }
 
 // ---------------- multi-post symbols ----------------
+
+interface IcGeom {
+  cx: number; cy: number;       // midpoint of the pin line
+  dx: number; dy: number;       // body direction (away from the pins)
+  vx: number; vy: number;       // pin-line direction (pin 1 → pin 4)
+  sx: number; sy: number;       // body edge where the leads enter
+  ex: number; ey: number;       // far edge of the body
+  halfH: number;
+  offsets: number[];            // pin position along the pin line
+}
+
+/**
+ * Shared geometry for the dummy IC symbol and its labels. Post order is
+ * pin 1 → pin 4 along the drag's perpendicular, so rotating the pin vector by
+ * −90° recovers the body direction. That keeps the four pins on the left at
+ * every rotation without needing a fifth "orientation" post.
+ */
+function icGeometry(posts: [number, number][]): IcGeom | null {
+  if (posts.length < 4) return null;
+  const p0 = posts[0], p3 = posts[3];
+  const span = dist(p0, p3);
+  if (span < 1) return null;
+  const [vx, vy] = norm(p0, p3);
+  const dx = vy, dy = -vx;
+  const cx = (p0[0] + p3[0]) / 2;
+  const cy = (p0[1] + p3[1]) / 2;
+  const lead = 12;
+  const bodyLen = 52;
+  const halfH = Math.max(30, span / 2 + 10);
+  const sx = cx + dx * lead, sy = cy + dy * lead;
+  return {
+    cx, cy, dx, dy, vx, vy, sx, sy,
+    ex: sx + dx * bodyLen, ey: sy + dy * bodyLen,
+    halfH,
+    offsets: posts.slice(0, 4).map((p) => (p[0] - cx) * vx + (p[1] - cy) * vy),
+  };
+}
+
+function drawGenericIc(ctx: CanvasRenderingContext2D, posts: [number, number][]) {
+  const g = icGeometry(posts);
+  if (!g) return;
+  const corners: [number, number][] = [
+    [g.sx - g.vx * g.halfH, g.sy - g.vy * g.halfH],
+    [g.ex - g.vx * g.halfH, g.ey - g.vy * g.halfH],
+    [g.ex + g.vx * g.halfH, g.ey + g.vy * g.halfH],
+    [g.sx + g.vx * g.halfH, g.sy + g.vy * g.halfH],
+  ];
+  ctx.beginPath();
+  ctx.moveTo(corners[0][0], corners[0][1]);
+  for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i][0], corners[i][1]);
+  ctx.closePath();
+  ctx.save();
+  ctx.fillStyle = palette.body;
+  ctx.fill();
+  ctx.restore();
+  ctx.stroke();
+
+  // Four short leads from the posts to the left edge of the body.
+  for (let i = 0; i < 4; i++) {
+    line(ctx, posts[i], [g.sx + g.vx * g.offsets[i], g.sy + g.vy * g.offsets[i]]);
+  }
+  // Pin-1 marker just inside the body.
+  const dot: [number, number] = [
+    g.sx + g.dx * 20 + g.vx * g.offsets[0],
+    g.sy + g.dy * 20 + g.vy * g.offsets[0],
+  ];
+  ctx.beginPath();
+  ctx.arc(dot[0], dot[1], 2.4, 0, Math.PI * 2);
+  ctx.fill();
+}
 
 function drawBjt(ctx: CanvasRenderingContext2D, posts: [number, number][], flags: number, opt: DrawOpt) {
   const b = posts[0], c = posts[1], e = posts[2];
@@ -694,6 +766,28 @@ function drawTransformer(ctx: CanvasRenderingContext2D, posts: [number, number][
 
 // ---------------- sources & single-post ----------------
 
+/** Two-cell DC battery: long/short plate pairs, positive plate by post 0. */
+function drawBattery(ctx: CanvasRenderingContext2D, a: [number, number], b: [number, number]) {
+  const L = dist(a, b);
+  if (L < 1) return;
+  const [ux, uy] = norm(a, b);
+  const px = -uy, py = ux;
+  const scale = Math.min(1, L / 48);
+  const gap = 6 * scale;
+  const c = mid(a, b);
+  const centers: [number, number][] = [-1.5, -0.5, 0.5, 1.5].map(
+    (t) => [c[0] + ux * gap * t, c[1] + uy * gap * t]
+  );
+  const half = [13, 7, 13, 7].map((h) => h * scale);
+
+  line(ctx, a, centers[0]);
+  for (let i = 0; i < centers.length; i++) {
+    const p = centers[i];
+    line(ctx, [p[0] - px * half[i], p[1] - py * half[i]], [p[0] + px * half[i], p[1] + py * half[i]]);
+  }
+  line(ctx, centers[centers.length - 1], b);
+}
+
 function drawVoltageSource(ctx: CanvasRenderingContext2D, a: [number, number], b: [number, number], flags: number, params: number[], opt: DrawOpt) {
   const L = dist(a, b);
   const [ux, uy] = norm(a, b);
@@ -1000,6 +1094,19 @@ export function elementLabels(
       push(text, m[0] + -uy * 36, m[1] + ux * 36, palette.value);
       break;
     }
+    case T.BATTERY_DC: {
+      if (!b) break;
+      const m = mid(a, b);
+      const [ux, uy] = norm(a, b);
+      const px = -uy, py = ux;
+      const gap = Math.min(6, dist(a, b) / 8);
+      const plus: [number, number] = [m[0] - ux * gap * 1.5 + px * 17, m[1] - uy * gap * 1.5 + py * 17];
+      const minus: [number, number] = [m[0] + ux * gap * 1.5 + px * 17, m[1] + uy * gap * 1.5 + py * 17];
+      push('+', plus[0], plus[1], baseColor, FONT_UI, 'center', false);
+      push('\u2212', minus[0], minus[1], baseColor, FONT_UI, 'center', false);
+      if (showValues) push(fmtValue(params[1], 'V'), m[0] + px * 36, m[1] + py * 36, palette.value);
+      break;
+    }
     case T.RAIL: {
       const v = params[0] ?? 5;
       push(fmtValue(v, 'V'), a[0], a[1] - 20, v >= 0 ? palette.wirePositive : palette.wireNegative, FONT_UI);
@@ -1078,6 +1185,20 @@ export function elementLabels(
       }
       for (const i of cfg.right) {
         if (cfg.pins[i]) push(cfg.pins[i], bx + bw - 4, posts[i][1], baseColor, FONT_UI, 'right', false);
+      }
+      break;
+    }
+    case T.IC_DUMMY: {
+      const g = icGeometry(posts);
+      if (!g) break;
+      push('IC', (g.sx + g.ex) / 2, (g.sy + g.ey) / 2, baseColor, FONT_UI, 'center', false);
+      for (let i = 0; i < 4; i++) {
+        push(
+          String(i + 1),
+          g.sx + g.dx * 9 + g.vx * g.offsets[i],
+          g.sy + g.dy * 9 + g.vy * g.offsets[i],
+          baseColor, FONT_SMALL, 'center', false
+        );
       }
       break;
     }
