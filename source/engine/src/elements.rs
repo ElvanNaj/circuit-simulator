@@ -49,6 +49,7 @@ pub const T_IC_DUMMY: u32 = 103; // editor-only 4-pin placeholder; no stamping
 pub const F_CLOSED: u32 = 1; // switch closed / logic input high / spark gap conducting
 pub const F_MOMENTARY: u32 = 2;
 pub const F_PNP: u32 = 0x100; // transistor pnp / mosfet p-channel
+pub const F_CT: u32 = 0x200; // current-transformer drawing variant (no stamp change)
 // waveform selector for T_VOLTAGE lives in flags & 0xFF
 pub const WF_DC: u32 = 0;
 pub const WF_AC: u32 = 1;
@@ -104,7 +105,8 @@ pub fn post_count(etype: u32, flags: u32) -> usize {
         | T_OHMMETER => 2,
         T_GROUND | T_RAIL | T_LOGIC_INPUT | T_CLOCK_INPUT | T_LOGIC_OUTPUT => 1,
         T_POT => 3,
-        T_TRANSISTOR | T_MOSFET | T_OPAMP | T_COMPARATOR | T_TRANSFORMER => 3,
+        T_TRANSISTOR | T_MOSFET | T_OPAMP | T_COMPARATOR => 3,
+        T_TRANSFORMER => 4, // p0/p2 primary, p1/p3 secondary
         T_AND | T_OR | T_NAND | T_NOR | T_XOR | T_XNOR => {
             let n = (flags & 0xFF) as usize;
             let n_in = if n < 2 { 2 } else if n > 4 { 4 } else { n };

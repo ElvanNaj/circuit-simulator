@@ -61,6 +61,7 @@ export function isProbeType(type: number): boolean {
 export const F_CLOSED = 1;
 export const F_MOMENTARY = 2;
 export const F_PNP = 0x100;
+export const F_CT = 0x200; // Current Transformer variant of T.TRANSFORMER
 export const WF_DC = 0,
   WF_AC = 1,
   WF_SQUARE = 2,
@@ -324,6 +325,22 @@ export const ELEMENT_META: ElemMeta[] = [
     scopeable: true,
   },
   {
+    type: T.TRANSFORMER,
+    name: 'Current Transformer (CT)',
+    category: 'Active',
+    posts: 4,
+    // Small primary inductance + high turns ratio models a 1-turn primary and
+    // a many-turn secondary. The engine uses the same T.TRANSFORMER stamps;
+    // F_CT only selects the CT drawing and metadata.
+    defaults: { params: [1e-6, 100, 0.999], flags: F_CT },
+    edits: [
+      { label: 'Primary Inductance', param: 0, unit: 'H' },
+      { label: 'Turns Ratio (Ns:Np)', param: 1, unit: '' },
+      { label: 'Coupling Coefficient', param: 2, unit: '' },
+    ],
+    scopeable: true,
+  },
+  {
     type: T.IC_DUMMY,
     name: 'Generic IC',
     category: 'Active',
@@ -510,6 +527,11 @@ export function metaByType(type: number, flags?: number): ElemMeta | undefined {
     return flags !== undefined && flags & F_PNP
       ? ELEMENT_META.find((m) => m.type === T.MOSFET && m.name.startsWith('P-'))
       : ELEMENT_META.find((m) => m.type === T.MOSFET && m.name.startsWith('N-'));
+  }
+  if (type === T.TRANSFORMER) {
+    return flags !== undefined && flags & F_CT
+      ? ELEMENT_META.find((m) => m.type === T.TRANSFORMER && m.name.startsWith('Current'))
+      : ELEMENT_META.find((m) => m.type === T.TRANSFORMER && !m.name.startsWith('Current'));
   }
   return ELEMENT_META.find((m) => m.type === type);
 }

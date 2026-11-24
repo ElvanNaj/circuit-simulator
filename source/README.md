@@ -77,7 +77,7 @@ node scripts/test-probes.mjs    # 5 test probe
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arsitektur sistem & alur data per frame |
 | [docs/ENGINE.md](docs/ENGINE.md) | Fisika engine: MNA, LU, Newton–Raphson, companion model |
 | [docs/WASM-ABI.md](docs/WASM-ABI.md) | Spesifikasi ABI memory & 32 fungsi ekspor |
-| [docs/COMPONENTS.md](docs/COMPONENTS.md) | Referensi 39 komponen + parameter |
+| [docs/COMPONENTS.md](docs/COMPONENTS.md) | Referensi 40 komponen + parameter |
 | [docs/UI-GUIDE.md](docs/UI-GUIDE.md) | Panduan antarmuka & interaksi |
 | [docs/BUILD-TEST.md](docs/BUILD-TEST.md) | Build, pengujian, & performa |
 

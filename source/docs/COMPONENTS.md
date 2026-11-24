@@ -1,11 +1,11 @@
 # Referensi Komponen
 
 Total **38 tipe engine** (`T.*` 1–37 plus `IC_DUMMY = 103`, mirror `engine/src/elements.rs`).
-`ELEMENT_META` punya **43 entri palette** karena NPN/PNP dan N/P-MOSFET berbagi tipe engine
-(15/16) dengan flag `F_PNP = 0x100`, plus probe **JS-only** untuk multimeter Z-AVO
-(`PROBE_RED = 101`, `PROBE_BLACK = 102`) dan `BATTERY_DC = 104` yang dipetakan ke elemen
-voltmeter/sumber tegangan saat dikirim ke engine. Kategori sidebar:
-`Passive, Sources, Probes, Active, Logic, Other`.
+`ELEMENT_META` punya **44 entri palette**. NPN/PNP dan N/P-MOSFET berbagi tipe engine
+(15/16) lewat flag `F_PNP = 0x100`; Transformer/CT berbagi tipe 33 lewat `F_CT = 0x200`.
+Ada juga probe **JS-only** untuk multimeter Z-AVO (`PROBE_RED = 101`, `PROBE_BLACK = 102`)
+dan `BATTERY_DC = 104` yang dipetakan ke elemen voltmeter/sumber tegangan saat dikirim ke
+engine. Kategori sidebar: `Passive, Sources, Probes, Active, Logic, Other`.
 
 ## Flag & Waveform
 
@@ -14,6 +14,7 @@ voltmeter/sumber tegangan saat dikirim ke engine. Kategori sidebar:
 | `F_CLOSED` | 1 | Switch/logic input dalam keadaan tertutup |
 | `F_MOMENTARY` | 2 | Switch momentary (kembali terbuka setelah dilepas) |
 | `F_PNP` | 0x100 | Transistor/MOSFET tipe P |
+| `F_CT` | 0x200 | Varian Current Transformer dari `T.TRANSFORMER` (gambar/param) |
 | Waveform | flags & 0xFF | 0 DC, 1 AC/sine, 2 square, 3 triangle, 4 sawtooth, 5 pulse |
 | Jumlah input gerbang | flags & 0xFF | 2–4 (tipe 19–26) |
 
@@ -46,7 +47,7 @@ voltmeter/sumber tegangan saat dikirim ke engine. Kategori sidebar:
 | Voltmeter | 36 | Shunt 1 GΩ; menampilkan tegangan antar-kaki | — |
 | Ohmmeter | 37 | Sumber arus uji 10 mA + shunt 1 GΩ; `R = V/I` | — |
 
-### Active (11)
+### Active (12)
 | Komponen | Tipe | Parameter (default) | Field edit |
 |---|---|---|---|
 | Diode | 12 | `[Is=1.714e-7, 0, 0, N=2]` | Saturation Current (A), Breakdown (V), Emission Coeff N |
@@ -57,6 +58,7 @@ voltmeter/sumber tegangan saat dikirim ke engine. Kategori sidebar:
 | Op-Amp | 17 | `[15, -15, 1e5]` | Max Output (V), Min Output (V), Gain |
 | Comparator | 18 | `[15, -15]` | High Output (V), Low Output (V) |
 | Transformer | 33 | `[0.004, 1, 0.999]` | Primary Inductance (H), Turns Ratio, Coupling |
+| Current Transformer (CT) | 33 + `F_CT` | `[1e-6, 100, 0.999]` | Primary Inductance (H), Turns Ratio Ns:Np, Coupling; primer digambar sebagai konduktor lurus |
 | Generic IC | 103 | — | —; 4 pin dummy di sisi kiri, tidak melakukan stamping |
 
 ### Logic (14)

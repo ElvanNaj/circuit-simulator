@@ -10,7 +10,7 @@ built with a **Rust → WebAssembly engine** and a **Next.js + React** frontend.
 
 ## Features
 
-- **38 component types** (43 palette entries): passives, sources (including a DC battery symbol), probes, active devices (including a 4-pin generic IC dummy), logic gates, ADC/DAC, transformers, spark gaps.
+- **38 component types** (44 palette entries): passives, sources (including a DC battery symbol), probes, active devices (including a 4-pin generic IC dummy and current transformer), logic gates, ADC/DAC, transformers, spark gaps.
 - **MNA engine** — LU factorization (Crout with partial pivoting), Newton–Raphson with voltage limiting, trapezoidal companion models for C and L.
 - **UI themes** — dark (default), light, and pink, including canvas colours.
 - **Built-in 4-channel oscilloscope** plus external instrument integration:

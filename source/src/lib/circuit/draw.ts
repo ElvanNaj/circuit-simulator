@@ -2,7 +2,7 @@
 // circuitjs1. 2-terminal elements draw in a rotated frame; multi-post
 // elements draw in world coordinates.
 
-import { T, F_CLOSED, F_PNP, WF_AC, WF_SQUARE, WF_TRIANGLE, WF_SAWTOOTH, WF_PULSE } from './elements';
+import { T, F_CLOSED, F_PNP, F_CT, WF_AC, WF_SQUARE, WF_TRIANGLE, WF_SAWTOOTH, WF_PULSE } from './elements';
 import { fmtValue } from './elements';
 import { CANVAS_PALETTES, type AppTheme, type CanvasPalette } from './theme';
 
@@ -141,7 +141,7 @@ export function drawElement(
     case T.DFF: drawChipBox(ctx, posts, 'DFF', ['D', '>', 'Q', 'Q\u0305'], [0, 1], [2, 3], opt); break;
     case T.ADC: drawChipBox(ctx, posts, 'ADC', ['IN', '0', '1', '2', '3'], [0], [1, 2, 3, 4], opt); break;
     case T.DAC: drawChipBox(ctx, posts, 'DAC', ['0', '1', '2', '3', 'OUT'], [0, 1, 2, 3], [4], opt); break;
-    case T.TRANSFORMER: drawTransformer(ctx, posts); break;
+    case T.TRANSFORMER: drawTransformer(ctx, posts, flags); break;
     case T.IC_DUMMY: drawGenericIc(ctx, posts); break;
     case T.VOLTAGE: drawVoltageSource(ctx, posts[0], posts[1], flags, params, opt); break;
     case T.BATTERY_DC: drawBattery(ctx, posts[0], posts[1]); break;
@@ -732,36 +732,67 @@ function drawChipBox(
   void opt; void label; void pinLabels;
 }
 
-function drawTransformer(ctx: CanvasRenderingContext2D, posts: [number, number][]) {
+function drawTransformer(ctx: CanvasRenderingContext2D, posts: [number, number][], flags: number) {
   const [p0, p1, p2, p3] = posts;
-  // primary: p0 (top) → p2 (bottom); secondary: p1 → p3
+  if (!p0 || !p1 || !p2 || !p3) return;
+  // p0→p2 is the primary winding, p1→p3 the secondary. Both axes are parallel
+  // in layoutPosts, so the primary direction drives every lead and core line.
+  const [ux, uy] = norm(p0, p2);
+  const px = -uy, py = ux;
+  const sep = (p1[0] - p0[0]) * px + (p1[1] - p0[1]) * py;
+  const side = sep >= 0 ? 1 : -1; // +px points toward the secondary
+  const L = dist(p0, p2);
+  const lead = Math.max(6, Math.min(12, L * 0.18));
+
+  const priA: [number, number] = [p0[0] + ux * lead, p0[1] + uy * lead];
+  const priB: [number, number] = [p2[0] - ux * lead, p2[1] - uy * lead];
+  const secA: [number, number] = [p1[0] + ux * lead, p1[1] + uy * lead];
+  const secB: [number, number] = [p3[0] - ux * lead, p3[1] - uy * lead];
+
+  // Leads now follow the post axis at any rotation (the old version drew them
+  // straight down, which left them detached from a rotated coil).
+  line(ctx, p0, priA); line(ctx, priB, p2);
+  line(ctx, p1, secA); line(ctx, secB, p3);
+
   const drawCoil = (a: [number, number], b: [number, number], bulge: number) => {
-    const L = dist(a, b);
-    const [ux, uy] = norm(a, b);
-    const px = -uy * bulge, py = ux * bulge;
-    // hump density stays constant so long coils still read as a coil
-    const humps = Math.max(3, Math.round(L / 12));
+    const len = dist(a, b);
+    const [cx, cy] = norm(a, b);
+    const ox = -cy * bulge, oy = cx * bulge;
+    const humps = Math.max(3, Math.round(len / 12));
     ctx.beginPath();
     ctx.moveTo(a[0], a[1]);
     for (let i = 0; i < humps; i++) {
-      const t0 = (L * i) / humps, t1 = (L * (i + 1)) / humps;
-      const cx = a[0] + ux * ((t0 + t1) / 2) + px;
-      const cy = a[1] + uy * ((t0 + t1) / 2) + py;
-      ctx.quadraticCurveTo(cx, cy, a[0] + ux * t1, a[1] + uy * t1);
+      const t0 = (len * i) / humps, t1 = (len * (i + 1)) / humps;
+      const hx = a[0] + cx * ((t0 + t1) / 2) + ox;
+      const hy = a[1] + cy * ((t0 + t1) / 2) + oy;
+      ctx.quadraticCurveTo(hx, hy, a[0] + cx * t1, a[1] + cy * t1);
     }
     ctx.stroke();
   };
-  line(ctx, p0, [p0[0], p0[1] + 6]);
-  line(ctx, p1, [p1[0], p1[1] + 6]);
-  drawCoil([p0[0], p0[1] + 6], [p2[0], p2[1] - 6], p1[0] > p2[0] ? 8 : -8);
-  drawCoil([p1[0], p1[1] + 6], [p3[0], p3[1] - 6], p1[0] > p2[0] ? -8 : 8);
-  line(ctx, [p2[0], p2[1] - 6], p2);
-  line(ctx, [p3[0], p3[1] - 6], p3);
-  // core lines
-  const midTop = mid([p0[0], p0[1] + 6], [p1[0], p1[1] + 6]);
-  const midBot = mid([p2[0], p2[1] - 6], [p3[0], p3[1] - 6]);
-  line(ctx, midTop, midBot);
-  line(ctx, [midTop[0] + 5, midTop[1]], [midBot[0] + 5, midBot[1]]);
+
+  const isCT = (flags & F_CT) !== 0;
+  if (isCT) {
+    // A CT primary is a single straight conductor through the core.
+    line(ctx, priA, priB);
+    const am = mid(priA, priB);
+    const ah = 6;
+    line(ctx, [am[0] - ux * ah + px * ah * 0.6, am[1] - uy * ah + py * ah * 0.6], am);
+    line(ctx, [am[0] - ux * ah - px * ah * 0.6, am[1] - uy * ah - py * ah * 0.6], am);
+  } else {
+    drawCoil(priA, priB, -side * 8);
+  }
+  drawCoil(secA, secB, side * 8);
+
+  // Two core lines between the windings, parallel to the winding axis offset.
+  const gap = 4;
+  const c0: [number, number] = [priA[0] + px * side * gap, priA[1] + py * side * gap];
+  const c1: [number, number] = [secA[0] - px * side * gap, secA[1] - py * side * gap];
+  const d0: [number, number] = [priB[0] + px * side * gap, priB[1] + py * side * gap];
+  const d1: [number, number] = [secB[0] - px * side * gap, secB[1] - py * side * gap];
+  const off = Math.min(5, L * 0.08);
+  line(ctx, c0, c1); line(ctx, d0, d1);
+  line(ctx, [c0[0] + ux * off, c0[1] + uy * off], [c1[0] + ux * off, c1[1] + uy * off]);
+  line(ctx, [d0[0] + ux * off, d0[1] + uy * off], [d1[0] + ux * off, d1[1] + uy * off]);
 }
 
 // ---------------- sources & single-post ----------------
@@ -1080,9 +1111,13 @@ export function elementLabels(
       break;
     }
     case T.TRANSFORMER: {
-      if (!showValues) break;
       const m = mid(a, b);
-      push(`1:${params[1] ?? 1}`, m[0], m[1], palette.value);
+      if ((flags & F_CT) !== 0 && posts[2]) {
+        const c = mid(a, posts[2]);
+        const [ux, uy] = norm(a, posts[2]);
+        push('CT', c[0] - uy * 15, c[1] + ux * 15, baseColor, FONT_SMALL, 'center', false);
+      }
+      if (showValues) push(`1:${params[1] ?? 1}`, m[0], m[1], palette.value);
       break;
     }
     case T.VOLTAGE: {
